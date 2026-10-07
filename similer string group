@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+// DSU Find operation with path compression
+int findParent(int* parent, int i) {
+    if (parent[i] == i)
+        return i;
+    return parent[i] = findParent(parent, parent[i]); // Path compression
+}
+
+// DSU Union operation
+bool unionSets(int* parent, int* rank, int i, int j) {
+    int root_i = findParent(parent, i);
+    int root_j = findParent(parent, j);
+    
+    if (root_i != root_j) {
+        // Union by rank
+        if (rank[root_i] < rank[root_j]) {
+            parent[root_i] = root_j;
+        } else if (rank[root_i] > rank[root_j]) {
+            parent[root_j] = root_i;
+        } else {
+            parent[root_j] = root_i;
+            rank[root_i]++;
+        }
+        return true; // A union actually happened
+    }
+    return false;
+}
+
+// Function to check if two strings are similar
+bool isSimilar(const char* s1, const char* s2, int len) {
+    int diffCount = 0;
+    for (int i = 0; i < len; i++) {
+        if (s1[i] != s2[i]) {
+            diffCount++;
+            // If they differ by more than 2 characters, they cannot be similar via 1 swap
+            if (diffCount > 2) {
+                return false;
+            }
+        }
+    }
+    // Since they are anagrams, diffCount can only be 0 or 2 for them to be similar
+    return diffCount == 0 || diffCount == 2;
+}
+
+int numSimilarGroups(char** strs, int strsSize) {
+    if (strsSize == 0) return 0;
+    
+    int strLen = strlen(strs[0]);
+    
+    // Allocate memory for DSU structures
+    int* parent = (int*)malloc(strsSize * sizeof(int));
+    int* rank = (int*)malloc(strsSize * sizeof(int));
+    
+    for (int i = 0; i < strsSize; i++) {
+        parent[i] = i;
+        rank[i] = 0;
+    }
+    
+    int components = strsSize;
+    
+    // Compare all pairs of strings
+    for (int i = 0; i < strsSize; i++) {
+        for (int j = i + 1; j < strsSize; j++) {
+            if (isSimilar(strs[i], strs[j], strLen)) {
+                // If they are similar and belong to different sets, union them
+                if (unionSets(parent, rank, i, j)) {
+                    components--; // Reduce the total number of independent groups
+                }
+            }
+        }
+    }
+    
+    free(parent);
+    free(rank);
+    
+    return components;
+}
