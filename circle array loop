@@ -1,0 +1,56 @@
+#include <stdbool.h>
+
+// Helper function to calculate the next index in a circular array
+int getNextIndex(int* nums, int numsSize, int currentIndex) {
+    int nextIndex = (currentIndex + nums[currentIndex]) % numsSize;
+    if (nextIndex < 0) {
+        nextIndex += numsSize; // Handle negative modulo in C
+    }
+    return nextIndex;
+}
+
+bool circularArrayLoop(int* nums, int numsSize) {
+    // Treat each index as a potential start of a cycle
+    for (int i = 0; i < numsSize; i++) {
+        // nums[i] == 0 means this path has already been evaluated and marked as invalid
+        if (nums[i] == 0) continue;
+
+        int slow = i;
+        int fast = i;
+        bool isForward = nums[i] > 0; // The direction must remain consistent
+
+        while (true) {
+            // Move slow pointer by 1 step
+            slow = getNextIndex(nums, numsSize, slow);
+            if ((nums[slow] > 0) != isForward || nums[slow] == 0) break;
+
+            // Move fast pointer by 1st step
+            fast = getNextIndex(nums, numsSize, fast);
+            if ((nums[fast] > 0) != isForward || nums[fast] == 0) break;
+
+            // Move fast pointer by 2nd step
+            fast = getNextIndex(nums, numsSize, fast);
+            if ((nums[fast] > 0) != isForward || nums[fast] == 0) break;
+
+            // If pointers meet, a cycle is detected
+            if (slow == fast) {
+                // Check if the cycle length is greater than 1
+                // If moving slow by 1 step lands back on itself, it's a self-loop (length 1)
+                if (slow == getNextIndex(nums, numsSize, slow)) {
+                    break; 
+                }
+                return true;
+            }
+        }
+
+        // Optimization: Mark all nodes along this failed path as 0 so we don't re-evaluate them
+        int slowMarker = i;
+        while ((nums[slowMarker] > 0) == isForward && nums[slowMarker] != 0) {
+            int next = getNextIndex(nums, numsSize, slowMarker);
+            nums[slowMarker] = 0;
+            slowMarker = next;
+        }
+    }
+
+    return false;
+}
