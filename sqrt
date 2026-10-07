@@ -1,0 +1,11 @@
+int mySqrt(int x)
+{
+    long long i;
+
+    i = 10;
+    while((i * i) < x)
+        i += 10;
+    while((i * i) > x)
+        i--;
+    return ((int)i);
+}
